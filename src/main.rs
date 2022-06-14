@@ -16,10 +16,6 @@ fn find_default_steamcmd() -> &'static str {
 #[derive(Parser, Debug)]
 #[clap(version, about, long_about = None)]
 struct Args {
-    // Path to steamcmd executable
-    #[clap(long, default_value = find_default_steamcmd())]
-    path: String,
-
     // Steam username
     #[clap(short, long)]
     username: String,
@@ -30,20 +26,11 @@ struct Args {
 
     // Steam 2FA shared secret
     #[clap(short, long)]
-    secret: String,
-
-    // Steamcmd args
-    #[clap(short, long)]
-    args: String,
+    secret: String
 }
 
 fn main() {
     let args = Args::parse();
-
-    if !std::path::Path::new(&args.path).exists() {
-        println!("Steamcmd executable not found at {}. Please specify with --path", args.path);
-        std::process::exit(1);
-    }
 
     let totp = match generate(&args.secret) {
         Ok(code) => code,
@@ -53,12 +40,7 @@ fn main() {
         }
     };
 
-    let cmd_arg = format!("+login {} {} {} {}", &args.username, &args.password, &totp, &args.args);
+    println!("{}", &totp);
 
-    let mut cmd = std::process::Command::new(&args.path);
-    cmd.arg(&cmd_arg);
-    
-    println!("{} {:?}\n", &args.path, &cmd_arg.replace(&args.username, "****").replace(&args.password, "****").replace(&totp, "****"));
-
-    std::process::exit(cmd.status().unwrap().code().unwrap());
+    std::process::exit(0);
 }
